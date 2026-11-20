@@ -1,1 +1,36 @@
+name: Build Quick Turn Camera
 
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+
+      - name: Build ARM64 plugin
+        run: |
+          ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk NDK_APPLICATION_MK=Application.mk NDK_DEBUG=0
+
+      - name: Stage plugin
+        run: |
+          mkdir -p output
+          cp libs/arm64-v8a/libQuickTurnCamera.so output/
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickTurnCamera-ARM64
+          path: output/libQuickTurnCamera.so
